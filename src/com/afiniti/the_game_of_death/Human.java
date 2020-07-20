@@ -4,10 +4,14 @@ public class Human extends Entity {
 
     private float i;
     private Coordinates currentLocation;
+    private boolean isInfected;
+    private int infectionTime;
+    private int currentInfectionTime;
 
-    protected Human(String n, Coordinates home, int i) {
+    protected Human(String n, Coordinates home, int i, int infectionTime) {
         super(n, home);
         this.currentLocation = home;
+        this.infectionTime = infectionTime;
     }
 
     public float getImmunity(){
@@ -23,7 +27,23 @@ public class Human extends Entity {
         }
     }
 
+    public void updateCurrentLocation(Coordinates coordinates){
+        this.currentLocation = coordinates;
+    }
+
     public Coordinates getCurrentLocation(){
         return this.currentLocation.getCoordinates();
+    }
+
+    public void setInfection(){
+
+    }
+
+    public void updateInfectionTime(){
+
+    }
+
+    public void removeInfection(){
+
     }
 }
