@@ -5,13 +5,11 @@ public class Human extends Entity {
     private float i;
     private Coordinates currentLocation;
     private boolean isInfected;
-    private int infectionTime;
     private int currentInfectionTime;
 
-    protected Human(String n, Coordinates home, int i, int infectionTime) {
+    protected Human(String n, Coordinates home, float i) {
         super(n, home);
         this.currentLocation = home;
-        this.infectionTime = infectionTime;
     }
 
     public float getImmunity(){
@@ -35,7 +33,7 @@ public class Human extends Entity {
         return this.currentLocation.getCoordinates();
     }
 
-    public void setInfection(){
+    public void setInfection(int t){
 
     }
 

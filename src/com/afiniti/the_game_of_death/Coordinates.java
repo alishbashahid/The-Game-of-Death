@@ -20,4 +20,19 @@ public class Coordinates {
     public Coordinates getCoordinates(){
         return new Coordinates(x, y);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof Coordinates){
+            Coordinates temp = (Coordinates)obj;
+            if (temp.getX()==getX() && temp.getY()==getY()) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int temp = (y+((x+1)/2));
+        return x + (temp*temp);
+    }
 }

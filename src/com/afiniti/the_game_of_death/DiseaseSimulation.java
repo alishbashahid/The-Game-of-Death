@@ -6,10 +6,10 @@ import java.util.List;
 public abstract class DiseaseSimulation {
     protected List<Entity> habitatEntities;
     public boolean isRunning;
-    protected int habitatSize;
+    protected int n;
 
     protected DiseaseSimulation(int n){
-        this.habitatSize = n;
+        this.n = n;
         habitatEntities = new ArrayList<>();
     }
 
