@@ -1,9 +1,6 @@
 package com.afiniti.the_game_of_death;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class Covid19Simulation extends DiseaseSimulation{
 
@@ -29,12 +26,16 @@ public class Covid19Simulation extends DiseaseSimulation{
 
     @Override
     public void tick() {
-
+        updateInfectionTimer();
+        moveHumans();
+        checkInfections();
+        isRunning = shouldRun();
     }
 
     @Override
     public void initialize() {
-
+        initializeOffices();
+        initializeHumans();
     }
 
     public void initializeOffices(){
@@ -77,10 +78,7 @@ public class Covid19Simulation extends DiseaseSimulation{
             System.out.println(x+" "+y);
         }
 
-        temp = 1;
-        int remaining_humans = h-w;
-
-        while (temp <= remaining_humans) {
+        while (temp <= h) {
 
             int x = random.nextInt(n);
             int y = random.nextInt(n);
@@ -94,6 +92,15 @@ public class Covid19Simulation extends DiseaseSimulation{
             temp++;
             System.out.println(x+" "+y);
         }
+
+        Human[] temp_humans = humans.values().toArray(new Human[h]);
+
+
+        temp_humans[0].setInfection(t);
+        temp_humans[1].setInfection(t);
+
+
+
     }
 
     private void updateInfectionTimer(){
@@ -114,6 +121,7 @@ public class Covid19Simulation extends DiseaseSimulation{
             if (hasInfectedNearby(human)){
                 float probability = random.nextInt(1001)/1000f;
                 if (human.getImmunity()<probability){
+                    System.out.println("Human: " + human.n + " Got Infected at x: " + human.getCurrentLocation().getX() + " y: " + human.getCurrentLocation().getY() + " for "+ t + " ticks");
                     human.setInfection(this.t);
                 }
             }
@@ -144,19 +152,24 @@ public class Covid19Simulation extends DiseaseSimulation{
 
     public void moveHumans(){
         HashMap<Coordinates,Human> humans_temp = new HashMap<>();
+        List<Coordinates> toBeRemoved = new ArrayList<>();
 
         for (Map.Entry<Coordinates, Human> humanEntry: humans.entrySet()){
             if (humanEntry.getValue() instanceof WorkingHuman){
                 WorkingHuman workingHuman = (WorkingHuman) humanEntry.getValue();
                 if (workingHuman.getCurrentLocation().equals(workingHuman.getOffice().getHomeLocation())) {
                     workingHuman.headToHome();
+                    System.out.println("Human: " + workingHuman.n + " Reached Office at x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
+                    System.out.println("Human: " + workingHuman.n + " Will Now Head to Home");
                 }
                 else if (workingHuman.getCurrentLocation().equals(workingHuman.getHomeLocation())) {
+                    System.out.println("Human: " + workingHuman.n + " Reached Home at x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
+                    System.out.println("Human: " + workingHuman.n + " Will Now Head to Office");
                     workingHuman.headToOffice();
                 }
 
                 int current_x = workingHuman.getCurrentLocation().getX();
-                int current_y = workingHuman.getCurrentLocation().getX();
+                int current_y = workingHuman.getCurrentLocation().getY();
 
                 int dest_x = workingHuman.getDestination().getX();
                 int dest_y = workingHuman.getDestination().getY();
@@ -164,10 +177,12 @@ public class Covid19Simulation extends DiseaseSimulation{
                 int delta_x = dest_x-current_x;
                 int delta_y = dest_y-current_y;
 
-                int step_x = delta_x/Math.abs(delta_x);
-                int step_y = delta_y/Math.abs(delta_y);
+                int step_x = (delta_x>0 || delta_x<0)?delta_x/Math.abs(delta_x):0;
+                int step_y = (delta_y>0 || delta_y<0)?delta_y/Math.abs(delta_y):0;
 
                 int movement = random.nextInt(2);
+
+                toBeRemoved.add(humanEntry.getKey());
 
                 if (movement == 0 && step_x!=0 || step_y==0){
                     workingHuman.updateCurrentLocation(new Coordinates(current_x+step_x,current_y));
@@ -177,12 +192,27 @@ public class Covid19Simulation extends DiseaseSimulation{
                     workingHuman.updateCurrentLocation(new Coordinates(current_x,current_y+step_y));
                 }
 
-                humans.remove(humanEntry.getKey());
+                System.out.println("Human: " + workingHuman.n + " Moved To x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
+
                 humans_temp.put(workingHuman.getCurrentLocation(),workingHuman);
 
             }
         }
+
+        for (Coordinates c: toBeRemoved){
+            humans.remove(c);
+        }
+
         humans.putAll(humans_temp);
+    }
+
+    private boolean shouldRun(){
+        for (Human h: humans.values()){
+            if (h.hasInfection()){
+                return true;
+            }
+        }
+        return false;
     }
 
     private float generateRandomImmunity(){

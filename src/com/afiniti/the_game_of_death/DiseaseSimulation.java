@@ -11,6 +11,7 @@ public abstract class DiseaseSimulation {
     protected DiseaseSimulation(int n){
         this.n = n;
         habitatEntities = new ArrayList<>();
+        isRunning = true;
     }
 
     public abstract void tick();

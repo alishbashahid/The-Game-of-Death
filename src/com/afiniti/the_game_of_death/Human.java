@@ -49,6 +49,7 @@ public class Human extends Entity {
             this.currentInfectionTime--;
             if (currentInfectionTime==0){
                 removeInfection();
+                System.out.println("Human: " + n + " is now uninfected at x: " + currentLocation.getX() + " y: " + currentLocation.getY());
             }
         }
     }
