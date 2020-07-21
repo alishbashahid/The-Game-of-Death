@@ -2,6 +2,7 @@ package com.afiniti.the_game_of_death;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class Covid19Simulation extends DiseaseSimulation{
@@ -70,7 +71,7 @@ public class Covid19Simulation extends DiseaseSimulation{
             //TODO: make offices initially occupied
             WorkingHuman human = new WorkingHuman(Integer.toString(temp), new Coordinates(x,y), generateRandomImmunity(), temp_offices[random.nextInt(o)]);
             habitatEntities.add(human);
-            humans.put(human.getHomeLocation(),human);
+            humans.put(human.getCurrentLocation(),human);
 
             temp++;
             System.out.println(x+" "+y);
@@ -88,10 +89,46 @@ public class Covid19Simulation extends DiseaseSimulation{
 
             Human human = new Human(Integer.toString(temp), new Coordinates(x,y), generateRandomImmunity());
             habitatEntities.add(human);
-            humans.put(human.getHomeLocation(),human);
+            humans.put(human.getCurrentLocation(),human);
 
             temp++;
             System.out.println(x+" "+y);
+        }
+    }
+
+    public void moveHumans(){
+        for (Map.Entry<Coordinates, Human> humanEntry: humans.entrySet()){
+            if (humanEntry.getValue() instanceof WorkingHuman){
+                WorkingHuman workingHuman = (WorkingHuman) humanEntry.getValue();
+                if (workingHuman.getCurrentLocation().equals(workingHuman.getOffice().getHomeLocation())) {
+                    workingHuman.headToHome();
+                }
+                else if (workingHuman.getCurrentLocation().equals(workingHuman.getHomeLocation())) {
+                    workingHuman.headToOffice();
+                }
+
+                int current_x = workingHuman.getCurrentLocation().getX();
+                int current_y = workingHuman.getCurrentLocation().getX();
+
+                int dest_x = workingHuman.getDestination().getX();
+                int dest_y = workingHuman.getDestination().getY();
+
+                int delta_x = dest_x-current_x;
+                int delta_y = dest_y-current_y;
+
+                int step_x = delta_x/Math.abs(delta_x);
+                int step_y = delta_y/Math.abs(delta_y);
+
+                int movement = random.nextInt(2);
+
+                if (movement == 0 && step_x!=0 || step_y==0){
+                    workingHuman.updateCurrentLocation(new Coordinates(current_x+step_x,current_y));
+                }
+
+                if (movement == 1 && step_y!=0 || step_x==0){
+                    workingHuman.updateCurrentLocation(new Coordinates(current_x,current_y+step_y));
+                }
+            }
         }
     }
 

@@ -34,14 +34,22 @@ public class Human extends Entity {
     }
 
     public void setInfection(int t){
-
+        if (!isInfected) {
+            this.currentInfectionTime = t;
+            isInfected = true;
+        }
     }
 
     public void updateInfectionTime(){
-
+        if (isInfected) {
+            this.currentInfectionTime--;
+        }
     }
 
     public void removeInfection(){
-
+        if (isInfected) {
+            this.currentInfectionTime = 0;
+            isInfected = false;
+        }
     }
 }
