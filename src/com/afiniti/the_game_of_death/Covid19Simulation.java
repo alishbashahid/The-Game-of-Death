@@ -96,6 +96,52 @@ public class Covid19Simulation extends DiseaseSimulation{
         }
     }
 
+    private void updateInfectionTimer(){
+        for (Map.Entry<Coordinates,Human> humanEntry: humans.entrySet()) {
+            Human human = humanEntry.getValue();
+            human.updateInfectionTime();
+        }
+    }
+
+    public void checkInfections(){
+        for (Map.Entry<Coordinates,Human> humanEntry: humans.entrySet()){
+            Human human = humanEntry.getValue();
+
+            if (human.hasInfection()){
+                continue;
+            }
+
+            if (hasInfectedNearby(human)){
+                float probability = random.nextInt(1001)/1000f;
+                if (human.getImmunity()<probability){
+                    human.setInfection(this.t);
+                }
+            }
+        }
+    }
+
+    private boolean hasInfectedNearby(Human human){
+        int current_x = human.getCurrentLocation().getX();
+        int current_y = human.getCurrentLocation().getY();
+
+
+        for (int x = -1; x<=1 ; x++){
+            for (int y = -1; y<=1; y++){
+                int temp_x = current_x+x;
+                int temp_y = current_y+y;
+
+                if (temp_x > n || temp_x < 0 || temp_y>n || temp_y < 0) {
+                    continue;
+                } else {
+                    if (humans.containsKey(new Coordinates(temp_x,temp_y)) && humans.get(new Coordinates(temp_x,temp_y)).hasInfection()){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public void moveHumans(){
         HashMap<Coordinates,Human> humans_temp = new HashMap<>();
 

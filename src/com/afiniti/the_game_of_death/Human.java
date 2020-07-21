@@ -20,9 +20,13 @@ public class Human extends Entity {
         if (i>=0 && i<=1){
             this.i = i;
         }
-        else{
+        else {
             throw new IllegalArgumentException("Immunity is probability of contracting a virus, its value lies between 0 and 1 inclusive.");
         }
+    }
+
+    public boolean hasInfection(){
+        return isInfected;
     }
 
     public void updateCurrentLocation(Coordinates coordinates){
@@ -43,12 +47,14 @@ public class Human extends Entity {
     public void updateInfectionTime(){
         if (isInfected) {
             this.currentInfectionTime--;
+            if (currentInfectionTime==0){
+                removeInfection();
+            }
         }
     }
 
     public void removeInfection(){
         if (isInfected) {
-            this.currentInfectionTime = 0;
             isInfected = false;
         }
     }
