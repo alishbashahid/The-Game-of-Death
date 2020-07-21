@@ -97,6 +97,8 @@ public class Covid19Simulation extends DiseaseSimulation{
     }
 
     public void moveHumans(){
+        HashMap<Coordinates,Human> humans_temp = new HashMap<>();
+
         for (Map.Entry<Coordinates, Human> humanEntry: humans.entrySet()){
             if (humanEntry.getValue() instanceof WorkingHuman){
                 WorkingHuman workingHuman = (WorkingHuman) humanEntry.getValue();
@@ -128,8 +130,13 @@ public class Covid19Simulation extends DiseaseSimulation{
                 if (movement == 1 && step_y!=0 || step_x==0){
                     workingHuman.updateCurrentLocation(new Coordinates(current_x,current_y+step_y));
                 }
+
+                humans.remove(humanEntry.getKey());
+                humans_temp.put(workingHuman.getCurrentLocation(),workingHuman);
+
             }
         }
+        humans.putAll(humans_temp);
     }
 
     private float generateRandomImmunity(){
