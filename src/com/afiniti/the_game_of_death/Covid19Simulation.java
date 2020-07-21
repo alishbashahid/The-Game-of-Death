@@ -165,7 +165,7 @@ public class Covid19Simulation extends DiseaseSimulation{
 
 
         temp_humans[0].setInfection(t);
-        //temp_humans[1].setInfection(t);
+        temp_humans[1].setInfection(t);
 
 
 
