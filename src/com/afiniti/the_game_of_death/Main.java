@@ -5,7 +5,7 @@ import java.util.Random;
 public class Main {
 
     public static void main(String[] args) {
-        DiseaseSimulation ds = new Covid19Simulation(8,5,4,4,30);
+        DiseaseSimulation ds = new Covid19Simulation(1,1,0,0,30);
 
         ds.initialize();
 

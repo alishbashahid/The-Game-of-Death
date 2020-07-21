@@ -63,13 +63,13 @@ public class Covid19Simulation extends DiseaseSimulation{
 
             temp++;
 
-            start_x += block_size+1;
+            start_x += block_size;
             end_x += block_size;
 
             if(end_x>=n){
                 start_x = 0;
                 end_x = block_size;
-                start_y += block_size+1;
+                start_y += block_size;
                 end_y += block_size;
                 if (end_y>=n){
                     start_x = 0;
@@ -98,8 +98,8 @@ public class Covid19Simulation extends DiseaseSimulation{
 
         while (temp <= w) {
 
-            int x = start_x+random.nextInt(end_x-start_x);
-            int y = start_y+random.nextInt(end_y-start_y);
+            int x = start_x+random.nextInt(end_x-start_x+1);
+            int y = start_y+random.nextInt(end_y-start_y+1);
 
             if (humans.containsKey(new Coordinates(x,y)) || offices.containsKey(new Coordinates(x,y))) continue;
 
@@ -110,13 +110,13 @@ public class Covid19Simulation extends DiseaseSimulation{
 
             temp++;
 
-            start_x += block_size+1;
+            start_x += block_size;
             end_x += block_size;
 
             if(end_x>=n){
                 start_x = 0;
                 end_x = block_size;
-                start_y += block_size+1;
+                start_y += block_size;
                 end_y += block_size;
                 if (end_y>=n){
                     start_x = 0;
@@ -131,8 +131,8 @@ public class Covid19Simulation extends DiseaseSimulation{
 
         while (temp <= h) {
 
-            int x = start_x+random.nextInt(end_x-start_x);
-            int y = start_y+random.nextInt(end_y-start_y);
+            int x = start_x+random.nextInt(end_x-start_x+1);
+            int y = start_y+random.nextInt(end_y-start_y+1);
 
             if (humans.containsKey(new Coordinates(x,y)) || offices.containsKey(new Coordinates(x,y))) continue;
 
@@ -142,13 +142,13 @@ public class Covid19Simulation extends DiseaseSimulation{
 
             temp++;
 
-            start_x += block_size+1;
+            start_x += block_size;
             end_x += block_size;
 
             if(end_x>=n){
                 start_x = 0;
                 end_x = block_size;
-                start_y += block_size+1;
+                start_y += block_size;
                 end_y += block_size;
                 if (end_y>=n){
                     start_x = 0;
@@ -165,7 +165,7 @@ public class Covid19Simulation extends DiseaseSimulation{
 
 
         temp_humans[0].setInfection(t);
-        temp_humans[1].setInfection(t);
+        //temp_humans[1].setInfection(t);
 
 
 
