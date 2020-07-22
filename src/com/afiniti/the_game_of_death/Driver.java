@@ -1,8 +1,5 @@
 package com.afiniti.the_game_of_death;
 
-import java.text.ParseException;
-import java.util.Random;
-
 public class Driver {
 
     public static void main(String[] args) throws InterruptedException {
