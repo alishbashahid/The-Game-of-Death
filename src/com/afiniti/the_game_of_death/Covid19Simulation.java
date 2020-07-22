@@ -312,14 +312,18 @@ public class Covid19Simulation extends DiseaseSimulation{
                 Coordinates new_coordinates_x = new Coordinates(current_x+step_x,current_y);
                 Coordinates new_coordinates_y = new Coordinates(current_x,current_y+step_y);
 
-                if (humans.containsKey(new_coordinates_x)){
-                    go_x = false;
-                    movement = 1;
+                if (!offices.containsKey(new_coordinates_x)) {
+                    if (humans.containsKey(new_coordinates_x)) {
+                        go_x = false;
+                        movement = 1;
+                    }
                 }
 
-                if (humans.containsKey(new_coordinates_y)) {
-                    go_y = false;
-                    movement = 0;
+                if (!offices.containsKey(new_coordinates_y)) {
+                    if (humans.containsKey(new_coordinates_y)) {
+                        go_y = false;
+                        movement = 0;
+                    }
                 }
 
                 if (movement == 0 && step_x!=0 || step_y==0 && go_x){
