@@ -25,7 +25,7 @@ public class WorkingHuman extends Human {
     protected WorkingHuman(String n, Coordinates home, float i, Office office) {
         super(n, home, i);
         this.office = office;
-        destination = new Coordinates(office.homeLocation.getX(),office.getHomeLocation().getY());
+        destination = homeLocation; // All Workers will initially move to homes as they are in offices from start
     }
 
     /**

@@ -246,6 +246,7 @@ public class Covid19Simulation extends DiseaseSimulation{
             WorkingHuman human = new WorkingHuman(Integer.toString(temp), new Coordinates(x,y), generateRandomImmunity(), assigned_office);
             habitatEntities.add(human);
             humans.put(human.getCurrentLocation(),human);
+            assigned_office.addHuman(human);
 
             temp++;
 
@@ -312,8 +313,6 @@ public class Covid19Simulation extends DiseaseSimulation{
                 // Updating their current location to offices location
                 workingHuman.updateCurrentLocation(workingHuman.getOffice().getHomeLocation());
 
-                temp_humans.put(workingHuman.getCurrentLocation(),workingHuman);
-
                 toBeRemoved.add(humanEntry.getKey());
             }
         }
@@ -322,9 +321,6 @@ public class Covid19Simulation extends DiseaseSimulation{
         for (Coordinates c: toBeRemoved){
             humans.remove(c);
         }
-
-        // Adding them again with updated coordinates
-        humans.putAll(temp_humans);
 
         // Calculating initial number of infected humans
         int initial_infections = (int)Math.ceil(h*p/100f);
@@ -415,14 +411,33 @@ public class Covid19Simulation extends DiseaseSimulation{
      */
     public void moveHumans(){
         // Since we have to update the keys after movement we have to temporarily store them, delete old keys, and put humans with new keys of coordinates
-        HashMap<Coordinates,Human> humans_temp = new HashMap<>();
+        Map<Coordinates,Human> humans_temp = new HashMap<>();
         List<Coordinates> toBeRemoved = new ArrayList<>();
 
-        // Looping through all humans
-        for (Map.Entry<Coordinates, Human> humanEntry: humans.entrySet()){
-            // If human is working human
-            if (humanEntry.getValue() instanceof WorkingHuman){
-                WorkingHuman workingHuman = (WorkingHuman) humanEntry.getValue();
+        List<Human> humansToRemoveFromOffice = new ArrayList<>();
+
+        // We need to move humans from office
+        for (Office office: offices.values()){
+            // Iterate through humans
+            for (Human human: office.getHumansInOffice()){
+                Coordinates initialState = human.getCurrentLocation();
+                moveHuman((WorkingHuman) human);
+                Coordinates finalState = human.getCurrentLocation();
+
+                // Has human moved from office
+                if (!finalState.equals(initialState)) {
+                    humansToRemoveFromOffice.add(human);
+                } else {
+                    continue;
+                }
+
+                WorkingHuman workingHuman = (WorkingHuman)human;
+
+                // If human has moved to another office other than destination office
+                if (offices.containsKey(human.getCurrentLocation()) && !workingHuman.getCurrentLocation().equals(workingHuman.getOffice().getHomeLocation())){
+                    offices.get(human.getCurrentLocation()).addHuman(human);
+                    continue;
+                }
 
                 // If human has reached office
                 if (workingHuman.getCurrentLocation().equals(workingHuman.getOffice().getHomeLocation())) {
@@ -432,6 +447,51 @@ public class Covid19Simulation extends DiseaseSimulation{
                     // Log reached office event
                     System.out.println("Human: " + workingHuman.getName() + " Reached Office at x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
                     System.out.println("Human: " + workingHuman.getName() + " Will Now Head to Home");
+
+                    workingHuman.getOffice().addHuman(workingHuman);
+                    continue;
+                }
+                // If human has reached home
+                else if (workingHuman.getCurrentLocation().equals(workingHuman.getHomeLocation())) {
+                    // Switch destination to office
+                    workingHuman.headToOffice();
+
+                    // Log reached home event
+                    System.out.println("Human: " + workingHuman.getName() + " Reached Home at x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
+                    System.out.println("Human: " + workingHuman.getName() + " Will Now Head to Office");
+                }
+                humans_temp.put(workingHuman.getCurrentLocation(),workingHuman);
+            }
+
+            office.getHumansInOffice().removeAll(humansToRemoveFromOffice);
+        }
+
+
+        // Looping through all humans
+        for (Map.Entry<Coordinates, Human> humanEntry: humans.entrySet()){
+            // If human is working human
+            if (humanEntry.getValue() instanceof WorkingHuman){
+                WorkingHuman workingHuman = moveHuman((WorkingHuman) humanEntry.getValue());
+
+                toBeRemoved.add(humanEntry.getKey());
+
+                // If human has reached office other than his office
+                if (offices.containsKey(workingHuman.getCurrentLocation()) && !workingHuman.getCurrentLocation().equals(workingHuman.getOffice().getHomeLocation())){
+                    offices.get(workingHuman.getCurrentLocation()).addHuman(workingHuman);
+                    continue;
+                }
+
+                // If human has reached office
+                if (workingHuman.getCurrentLocation().equals(workingHuman.getOffice().getHomeLocation())) {
+                    // Switch destination to home
+                    workingHuman.headToHome();
+
+                    // Log reached office event
+                    System.out.println("Human: " + workingHuman.getName() + " Reached Office at x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
+                    System.out.println("Human: " + workingHuman.getName() + " Will Now Head to Home");
+
+                    workingHuman.getOffice().addHuman(workingHuman);
+                    continue;
                 }
                 // If human has reached home
                 else if (workingHuman.getCurrentLocation().equals(workingHuman.getHomeLocation())) {
@@ -443,73 +503,6 @@ public class Covid19Simulation extends DiseaseSimulation{
                     System.out.println("Human: " + workingHuman.getName() + " Will Now Head to Office");
                 }
 
-                // Current X and Y
-                int current_x = workingHuman.getCurrentLocation().getX();
-                int current_y = workingHuman.getCurrentLocation().getY();
-
-                // Destination X and Y
-                int dest_x = workingHuman.getDestination().getX();
-                int dest_y = workingHuman.getDestination().getY();
-
-                // Difference between current X and Y and destination X and Y
-                int delta_x = dest_x-current_x;
-                int delta_y = dest_y-current_y;
-
-                // Since we can only take one step, calculate one step in X and Y towards destination
-                int step_x = (delta_x>0 || delta_x<0)?delta_x/Math.abs(delta_x):0;
-                int step_y = (delta_y>0 || delta_y<0)?delta_y/Math.abs(delta_y):0;
-
-                // Randomly decide whether move in X direction or Y direction. 0 for X, 1 for Y
-                int movement = random.nextInt(2);
-
-                // Should Go in direction of X
-                boolean go_x = true;
-                // Should Go in direction of y
-                boolean go_y = true;
-
-                // Calculate new coordinates based on step taken in x and y direction
-                Coordinates new_coordinates_x = new Coordinates(current_x+step_x,current_y);
-                Coordinates new_coordinates_y = new Coordinates(current_x,current_y+step_y);
-
-                // If there is no office in X direction
-                if (!offices.containsKey(new_coordinates_x)) {
-                    // If there is human in that direction
-                    if (humans.containsKey(new_coordinates_x)) {
-                        // Switch movement to go in Y direction
-                        go_x = false;
-                        movement = 1;
-                    }
-                }
-
-                // If there is no office in Y direction
-                if (!offices.containsKey(new_coordinates_y)) {
-                    // If there is human in that direction
-                    if (humans.containsKey(new_coordinates_y)) {
-                        // Switch movement to go in X direction
-                        go_y = false;
-                        movement = 0;
-                    }
-                }
-
-                // Move in direction of X if there is office in that direction, no human, human has decided to move in X or human doesn't have to move in Y anymore
-                if (movement == 0 && step_x!=0 || step_y==0 && go_x){
-                    // Update coordinates
-                    workingHuman.updateCurrentLocation(new_coordinates_x);
-
-                    // Log human movement
-                    System.out.println("Human: " + workingHuman.getName() + " Moved To x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
-                }
-
-                // Move in direction of Y if there is office in that direction, no human, human has decided to move in Y or human doesn't have to move in X anymore
-                if (movement == 1 && step_y!=0 || step_x==0 && go_y){
-                    // Update coordinates
-                    workingHuman.updateCurrentLocation(new_coordinates_y);
-
-                    // Log human movement
-                    System.out.println("Human: " + workingHuman.getName() + " Moved To x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
-                }
-
-                toBeRemoved.add(humanEntry.getKey());
                 humans_temp.put(workingHuman.getCurrentLocation(),workingHuman);
 
             }
@@ -521,6 +514,80 @@ public class Covid19Simulation extends DiseaseSimulation{
         }
 
         humans.putAll(humans_temp);
+    }
+
+    /**
+     * Move Human towards destination
+     * @param workingHuman human to move
+     * @return human after moved to new location
+     */
+    private WorkingHuman moveHuman(WorkingHuman workingHuman){
+        // Current X and Y
+        int current_x = workingHuman.getCurrentLocation().getX();
+        int current_y = workingHuman.getCurrentLocation().getY();
+
+        // Destination X and Y
+        int dest_x = workingHuman.getDestination().getX();
+        int dest_y = workingHuman.getDestination().getY();
+
+        // Difference between current X and Y and destination X and Y
+        int delta_x = dest_x-current_x;
+        int delta_y = dest_y-current_y;
+
+        // Since we can only take one step, calculate one step in X and Y towards destination
+        int step_x = (delta_x>0 || delta_x<0)?delta_x/Math.abs(delta_x):0;
+        int step_y = (delta_y>0 || delta_y<0)?delta_y/Math.abs(delta_y):0;
+
+        // Randomly decide whether move in X direction or Y direction. 0 for X, 1 for Y
+        int movement = random.nextInt(2);
+
+        // Should Go in direction of X
+        boolean go_x = true;
+        // Should Go in direction of y
+        boolean go_y = true;
+
+        // Calculate new coordinates based on step taken in x and y direction
+        Coordinates new_coordinates_x = new Coordinates(current_x+step_x,current_y);
+        Coordinates new_coordinates_y = new Coordinates(current_x,current_y+step_y);
+
+        // If there is no office in X direction
+        if (!offices.containsKey(new_coordinates_x)) {
+            // If there is human in that direction
+            if (humans.containsKey(new_coordinates_x)) {
+                // Switch movement to go in Y direction
+                go_x = false;
+                movement = 1;
+            }
+        }
+
+        // If there is no office in Y direction
+        if (!offices.containsKey(new_coordinates_y)) {
+            // If there is human in that direction
+            if (humans.containsKey(new_coordinates_y)) {
+                // Switch movement to go in X direction
+                go_y = false;
+                movement = 0;
+            }
+        }
+
+        // Move in direction of X if there is office in that direction, no human, human has decided to move in X or human doesn't have to move in Y anymore
+        if (movement == 0 && step_x!=0 || step_y==0 && go_x){
+            // Update coordinates
+            workingHuman.updateCurrentLocation(new_coordinates_x);
+
+            // Log human movement
+            System.out.println("Human: " + workingHuman.getName() + " Moved To x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
+        }
+
+        // Move in direction of Y if there is office in that direction, no human, human has decided to move in Y or human doesn't have to move in X anymore
+        if (movement == 1 && step_y!=0 || step_x==0 && go_y){
+            // Update coordinates
+            workingHuman.updateCurrentLocation(new_coordinates_y);
+
+            // Log human movement
+            System.out.println("Human: " + workingHuman.getName() + " Moved To x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
+        }
+        return workingHuman;
     }
 
     /**
