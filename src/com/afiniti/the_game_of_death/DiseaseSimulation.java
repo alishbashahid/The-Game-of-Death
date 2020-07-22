@@ -6,9 +6,13 @@ import java.util.List;
 public abstract class DiseaseSimulation {
     protected List<Entity> habitatEntities;
     public boolean isRunning;
-    protected int n;
+    protected long n;
 
-    protected DiseaseSimulation(int n){
+    protected DiseaseSimulation(long n){
+        if (n<1 && n>1000000){
+            throw new IllegalArgumentException("Habitat size n must be 0 < n <=1000000");
+        }
+
         this.n = n;
         habitatEntities = new ArrayList<>();
         isRunning = true;

@@ -9,13 +9,31 @@ public class Covid19Simulation extends DiseaseSimulation{
     private int w;
     private int o;
     private int t;
+    private float p;
     private Random random;
     private HashMap<Coordinates,Office> offices;
     private HashMap<Coordinates,Human> humans;
 
 
-    public Covid19Simulation(int n, int h, int w, int o, int t){
+    public Covid19Simulation(long n, int h, int w, int o, int t){
         super(n);
+
+        if (h<0 && h>1000000){
+            throw new IllegalArgumentException("Number of humans h must be 0 <= h <= 1000000. But was " + h);
+        }
+
+        if (w<0 && w>h){
+            throw new IllegalArgumentException("Number of working humans h must be 0 <= w <= h. But was " + w);
+        }
+
+        if (o<0 && h>10000){
+            throw new IllegalArgumentException("Number of offices o must be 0 <= o <= 10000. But was " + o);
+        }
+
+        if (h+o > n*n){
+            throw new IllegalArgumentException("Number of entities (h+o) are greater than number of cells in a habitat n^2. Total entities: " + h+o);
+        }
+
         this.h = h;
         this.w = w;
         this.o = o;
@@ -23,6 +41,17 @@ public class Covid19Simulation extends DiseaseSimulation{
         random = new Random();
         offices = new HashMap<>();
         humans = new HashMap<>();
+        this.p = 1.0f;
+    }
+
+    public Covid19Simulation(long n, int h, int w, int o, int t, float p){
+        this(n,h,w,o,t);
+
+        if (p > 100f || p<0f){
+            throw new IllegalArgumentException("Infection percentage must be 0.0 <= p <=100.0. But was " + p);
+        }
+
+        this.p = p;
     }
 
     @Override
@@ -52,32 +81,34 @@ public class Covid19Simulation extends DiseaseSimulation{
 
         while (temp <= o) {
 
-            int x = start_x+random.nextInt(end_x-start_x+1);
-            int y = start_y+random.nextInt(end_y-start_y+1);
-
-            if (offices.containsKey(new Coordinates(x,y))) continue;
-
-            Office office = new Office(Integer.toString(temp), new Coordinates(x,y));
-            habitatEntities.add(office);
-            offices.put(office.getHomeLocation(),office);
-
-            temp++;
+            int x = start_x+random.nextInt(end_x-start_x);
+            int y = start_y+random.nextInt(end_y-start_y);
 
             start_x += block_size;
             end_x += block_size;
 
-            if(end_x>=n){
+            if(end_x>n){
                 start_x = 0;
                 end_x = block_size;
                 start_y += block_size;
                 end_y += block_size;
-                if (end_y>=n){
+                if (end_y>n){
                     start_x = 0;
                     end_x = block_size;
                     start_y = 0;
                     end_y = block_size;
                 }
             }
+
+            if (offices.containsKey(new Coordinates(x,y))){
+                continue;
+            }
+
+            Office office = new Office(Integer.toString(temp), new Coordinates(x,y));
+            habitatEntities.add(office);
+            offices.put(office.getHomeLocation(),office);
+
+            temp++;
             System.out.println(x+" "+y);
         }
 
@@ -98,27 +129,18 @@ public class Covid19Simulation extends DiseaseSimulation{
 
         while (temp <= w) {
 
-            int x = start_x+random.nextInt(end_x-start_x+1);
-            int y = start_y+random.nextInt(end_y-start_y+1);
-
-            if (humans.containsKey(new Coordinates(x,y)) || offices.containsKey(new Coordinates(x,y))) continue;
-
-            //TODO: make offices initially occupied
-            WorkingHuman human = new WorkingHuman(Integer.toString(temp), new Coordinates(x,y), generateRandomImmunity(), temp_offices[random.nextInt(o)]);
-            habitatEntities.add(human);
-            humans.put(human.getCurrentLocation(),human);
-
-            temp++;
+            int x = start_x+random.nextInt(end_x-start_x);
+            int y = start_y+random.nextInt(end_y-start_y);
 
             start_x += block_size;
             end_x += block_size;
 
-            if(end_x>=n){
+            if(end_x>n){
                 start_x = 0;
                 end_x = block_size;
                 start_y += block_size;
                 end_y += block_size;
-                if (end_y>=n){
+                if (end_y>n){
                     start_x = 0;
                     end_x = block_size;
                     start_y = 0;
@@ -126,15 +148,45 @@ public class Covid19Simulation extends DiseaseSimulation{
                 }
             }
 
+            if (humans.containsKey(new Coordinates(x,y)) || offices.containsKey(new Coordinates(x,y))) {
+                continue;
+            }
+
+
+            Office assigned_office = temp_offices[random.nextInt(o)];
+            WorkingHuman human = new WorkingHuman(Integer.toString(temp), new Coordinates(x,y), generateRandomImmunity(), assigned_office);
+            habitatEntities.add(human);
+            humans.put(human.getCurrentLocation(),human);
+
+            temp++;
+
             System.out.println(x+" "+y);
         }
 
         while (temp <= h) {
 
-            int x = start_x+random.nextInt(end_x-start_x+1);
-            int y = start_y+random.nextInt(end_y-start_y+1);
+            int x = start_x+random.nextInt(end_x-start_x);
+            int y = start_y+random.nextInt(end_y-start_y);
 
-            if (humans.containsKey(new Coordinates(x,y)) || offices.containsKey(new Coordinates(x,y))) continue;
+            start_x += block_size;
+            end_x += block_size;
+
+            if(end_x>n){
+                start_x = 0;
+                end_x = block_size;
+                start_y += block_size;
+                end_y += block_size;
+                if (end_y>n){
+                    start_x = 0;
+                    end_x = block_size;
+                    start_y = 0;
+                    end_y = block_size;
+                }
+            }
+
+            if (humans.containsKey(new Coordinates(x,y)) || offices.containsKey(new Coordinates(x,y))){
+                continue;
+            }
 
             Human human = new Human(Integer.toString(temp), new Coordinates(x,y), generateRandomImmunity());
             habitatEntities.add(human);
@@ -142,33 +194,36 @@ public class Covid19Simulation extends DiseaseSimulation{
 
             temp++;
 
-            start_x += block_size;
-            end_x += block_size;
-
-            if(end_x>=n){
-                start_x = 0;
-                end_x = block_size;
-                start_y += block_size;
-                end_y += block_size;
-                if (end_y>=n){
-                    start_x = 0;
-                    end_x = block_size;
-                    start_y = 0;
-                    end_y = block_size;
-                }
-            }
-
             System.out.println(x+" "+y);
         }
 
-        Human[] temp_humans = humans.values().toArray(new Human[h]);
+        Map<Coordinates, Human> temp_humans = new HashMap<>();
+        List<Coordinates> toBeRemoved = new ArrayList<>();
 
+        for (Map.Entry<Coordinates, Human> humanEntry: humans.entrySet()){
+            if (humanEntry.getValue() instanceof WorkingHuman){
+                WorkingHuman workingHuman = (WorkingHuman)humanEntry.getValue();
 
-        temp_humans[0].setInfection(t);
-        temp_humans[1].setInfection(t);
+                workingHuman.updateCurrentLocation(workingHuman.getOffice().getHomeLocation());
+                temp_humans.put(workingHuman.getCurrentLocation(),workingHuman);
 
+                toBeRemoved.add(humanEntry.getKey());
+            }
+        }
 
+        for (Coordinates c: toBeRemoved){
+            humans.remove(c);
+        }
 
+        humans.putAll(temp_humans);
+
+        int initial_infections = (int)Math.ceil(h*p);
+
+        for (Human human: humans.values()){
+            human.setInfection(t);
+            initial_infections--;
+            if (initial_infections==0) break;
+        }
     }
 
     private void updateInfectionTimer(){
@@ -181,6 +236,7 @@ public class Covid19Simulation extends DiseaseSimulation{
     public void checkInfections(){
         for (Map.Entry<Coordinates,Human> humanEntry: humans.entrySet()){
             Human human = humanEntry.getValue();
+
 
             if (human.hasInfection()){
                 continue;
@@ -250,18 +306,33 @@ public class Covid19Simulation extends DiseaseSimulation{
 
                 int movement = random.nextInt(2);
 
+                boolean go_x = true;
+                boolean go_y = true;
+
+                Coordinates new_coordinates_x = new Coordinates(current_x+step_x,current_y);
+                Coordinates new_coordinates_y = new Coordinates(current_x,current_y+step_y);
+
+                if (humans.containsKey(new_coordinates_x)){
+                    go_x = false;
+                    movement = 1;
+                }
+
+                if (humans.containsKey(new_coordinates_y)) {
+                    go_y = false;
+                    movement = 0;
+                }
+
+                if (movement == 0 && step_x!=0 || step_y==0 && go_x){
+                    workingHuman.updateCurrentLocation(new_coordinates_x);
+                    System.out.println("Human: " + workingHuman.n + " Moved To x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
+                }
+
+                if (movement == 1 && step_y!=0 || step_x==0 && go_y){
+                    workingHuman.updateCurrentLocation(new_coordinates_y);
+                    System.out.println("Human: " + workingHuman.n + " Moved To x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
+                }
+
                 toBeRemoved.add(humanEntry.getKey());
-
-                if (movement == 0 && step_x!=0 || step_y==0){
-                    workingHuman.updateCurrentLocation(new Coordinates(current_x+step_x,current_y));
-                }
-
-                if (movement == 1 && step_y!=0 || step_x==0){
-                    workingHuman.updateCurrentLocation(new Coordinates(current_x,current_y+step_y));
-                }
-
-                System.out.println("Human: " + workingHuman.n + " Moved To x: " + workingHuman.getCurrentLocation().getX() + " y: " + workingHuman.getCurrentLocation().getY());
-
                 humans_temp.put(workingHuman.getCurrentLocation(),workingHuman);
 
             }
@@ -283,15 +354,14 @@ public class Covid19Simulation extends DiseaseSimulation{
         return false;
     }
 
-    private int getBlockSize(int n, int block_count)
+    private int getBlockSize(long n, int block_count)
     {
         //divide the area but the number of blocks to get the max area a block could cover
         //this optimal size for a block will more often than not make the blocks overlap, but
         //a block can never be bigger than this size
-        BigInteger big_n = new BigInteger(String.valueOf(n));
-        BigInteger big_block = new BigInteger(String.valueOf(n));
+        long l_n = n;
 
-        double maxSize = Math.sqrt((big_n.multiply(big_n)).divide(big_block).doubleValue());
+        double maxSize = Math.sqrt(l_n*l_n/block_count);
         //find the number of whole blocks that can fit into the height
         double possibleBlocksinN = Math.floor(n / maxSize);
         //works out how many whole blocks this configuration can hold
@@ -304,7 +374,7 @@ public class Covid19Simulation extends DiseaseSimulation{
             possibleBlocksinN = Math.floor(n / maxSize);
             total = possibleBlocksinN * possibleBlocksinN;
         }
-        return (int)Math.floor(maxSize);
+        return (int)Math.ceil(maxSize);
     }
 
     private float generateRandomImmunity(){
