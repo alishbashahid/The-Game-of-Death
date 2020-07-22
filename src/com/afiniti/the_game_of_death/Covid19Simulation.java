@@ -347,7 +347,7 @@ public class Covid19Simulation extends DiseaseSimulation{
     /**
      * Method to check infected humans in vicinity of all humans
      */
-    public void checkInfections(){
+    private void checkInfections(){
         for (Map.Entry<Coordinates,Human> humanEntry: humans.entrySet()){
             Human human = humanEntry.getValue();
 
@@ -409,7 +409,7 @@ public class Covid19Simulation extends DiseaseSimulation{
     /**
      * Method to move working humans towards their destination
      */
-    public void moveHumans(){
+    private void moveHumans(){
         // Since we have to update the keys after movement we have to temporarily store them, delete old keys, and put humans with new keys of coordinates
         Map<Coordinates,Human> humans_temp = new HashMap<>();
         List<Coordinates> toBeRemoved = new ArrayList<>();
