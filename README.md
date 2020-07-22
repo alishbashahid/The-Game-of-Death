@@ -19,7 +19,7 @@ The scope of this project includes:
 >Time spent: 2 hours
 
 First step in developing the framework was to design an object-oriented model of the framework that will serve as a base structure in the development process. This model is developed by keeping the fact in mind that the framework will be extended in the future and more attributes will be added to it.
-<UML>
+![UML](https://github.com/alishbashahid/The-Game-of-Death/blob/master/UML/Diagram.png)
 
 #### Java Classes
 | Classes | Purpose |
