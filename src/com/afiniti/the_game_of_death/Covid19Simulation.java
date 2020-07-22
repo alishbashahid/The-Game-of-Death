@@ -47,7 +47,7 @@ public class Covid19Simulation extends DiseaseSimulation{
     public Covid19Simulation(long n, int h, int w, int o, int t, float p){
         this(n,h,w,o,t);
 
-        if (p > 100f || p<0f){
+        if (p > 100f || p < 0f){
             throw new IllegalArgumentException("Infection percentage must be 0.0 <= p <=100.0. But was " + p);
         }
 
@@ -109,9 +109,8 @@ public class Covid19Simulation extends DiseaseSimulation{
             offices.put(office.getHomeLocation(),office);
 
             temp++;
-            System.out.println(x+" "+y);
+            System.out.println("Office initialized at x: " + x + " y: " +y);
         }
-
     }
 
     private void initializeHumans(){
@@ -160,7 +159,7 @@ public class Covid19Simulation extends DiseaseSimulation{
 
             temp++;
 
-            System.out.println(x+" "+y);
+            System.out.println("Working human "+ human.n + " initialized at x: " + x + " y: " +y + " Immunity: " + human.getImmunity() + " Office x: " + assigned_office.homeLocation.getX() + " y: " + assigned_office.homeLocation.getY());
         }
 
         while (temp <= h) {
@@ -194,7 +193,7 @@ public class Covid19Simulation extends DiseaseSimulation{
 
             temp++;
 
-            System.out.println(x+" "+y);
+            System.out.println("Human "+ human.n + " initialized at x: " + x + " y: " +y + " Immunity: " + human.getImmunity());
         }
 
         Map<Coordinates, Human> temp_humans = new HashMap<>();
@@ -217,10 +216,11 @@ public class Covid19Simulation extends DiseaseSimulation{
 
         humans.putAll(temp_humans);
 
-        int initial_infections = (int)Math.ceil(h*p);
+        int initial_infections = (int)Math.ceil(h*p/100f);
 
         for (Human human: humans.values()){
             human.setInfection(t);
+            System.out.println("Human "+ human.n + " initially Infected at x: " + human.getCurrentLocation().getX() + " y: " + human.getCurrentLocation().getY() + " Immunity: " + human.getImmunity());
             initial_infections--;
             if (initial_infections==0) break;
         }
@@ -382,6 +382,6 @@ public class Covid19Simulation extends DiseaseSimulation{
     }
 
     private float generateRandomImmunity(){
-        return random.nextInt(1001)/1000f;
+        return (float)(random.nextInt(1001)/1000.0);
     }
 }

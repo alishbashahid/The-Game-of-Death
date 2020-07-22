@@ -10,6 +10,9 @@ public class Human extends Entity {
     protected Human(String n, Coordinates home, float i) {
         super(n, home);
         this.currentLocation = home;
+        this.i = i;
+        this.isInfected = false;
+        this.currentInfectionTime = 0;
     }
 
     public float getImmunity(){

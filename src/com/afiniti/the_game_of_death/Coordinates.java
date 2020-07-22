@@ -22,7 +22,7 @@ public class Coordinates {
     }
 
     public Coordinates getCoordinates(){
-        return new Coordinates(x, y);
+        return this;
     }
 
     @Override
